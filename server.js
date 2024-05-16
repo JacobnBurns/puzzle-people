@@ -11,6 +11,9 @@ const connectDB = require("./config/database");
 const mainRoutes = require("./routes/main");
 const postRoutes = require("./routes/posts");
 const commentRoutes = require("./routes/comments");
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+// const User = require('./models/user'); 
+
 
 //Use .env file in config folder
 require("dotenv").config({ path: "./config/.env" });
@@ -50,6 +53,21 @@ app.use(
 // Passport middleware
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Passport Configuration
+passport.use(new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  callbackURL: "http://localhost:2121/auth/google/callback" // Adjust the URL as needed
+},
+function(accessToken, refreshToken, profile, cb) {
+  // Assuming you have a User model with a findOrCreate method
+  User.findOrCreate({ googleId: profile.id }, function (err, user) {
+    return cb(err, user);
+  });
+}
+));
+
 
 //Use flash messages for errors, info, ect...
 app.use(flash());
